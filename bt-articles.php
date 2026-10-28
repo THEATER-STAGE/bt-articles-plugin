@@ -55,14 +55,16 @@ function bt_art_ob_start() {
 }
 
 function bt_art_ob_inject($html) {
-  if ($html === '' || strpos($html, 'مقالات') !== false && preg_match('~/ar/articles/?["\']~', $html)) {
-    // still inject if only body text has مقالات
+  if ($html === '') return $html;
+  // Skip if a dedicated nav/footer link to /ar/articles/ already exists
+  if (preg_match('#<a[^>]+href="[^"]*/ar/articles/?"[^>]*>\s*مقالات\s*</a>#u', $html)) {
+    return $html;
   }
   $link = '<a class="hover:text-bronze" href="' . esc_url(home_url('/ar/articles/')) . '">مقالات</a>';
   $footer_li = '<li><a href="' . esc_url(home_url('/ar/articles/')) . '">مقالات</a></li>';
-  // After المدونة / Journal link in nav
+  // After المدونة / Journal link in nav (once)
   $html2 = preg_replace(
-    '#(<a[^>]+href="[^"]*/ar/journal/?\"[^>]*>المدونة</a>)#u',
+    '#(<a[^>]+href="[^"]*/ar/journal/?"[^>]*>المدونة</a>)#u',
     '$1' . $link,
     $html,
     1,
@@ -70,7 +72,7 @@ function bt_art_ob_inject($html) {
   );
   if (!$c1) {
     $html2 = preg_replace(
-      '#(<a[^>]+href="[^"]*/ar/journal[^"]*\"[^>]*>المدونة</a>)#u',
+      '#(<a[^>]+href="[^"]*/ar/journal[^"]*"[^>]*>المدونة</a>)#u',
       '$1' . $link,
       $html,
       1,
@@ -78,20 +80,15 @@ function bt_art_ob_inject($html) {
     );
   }
   if ($c1) $html = $html2;
-  // Footer: after المدونة list item
-  $html = preg_replace(
-    '#(<li>\s*<a[^>]+href="[^"]*/ar/journal/?\"[^>]*>المدونة</a>\s*</li>)#u',
-    '$1' . $footer_li,
-    $html,
-    1
-  );
-  // Mobile drawer if present
-  $html = preg_replace(
-    '#(href="[^"]*/ar/journal/?"[^>]*>\s*المدونة\s*</a>)#u',
-    '$1' . $link,
-    $html,
-    1
-  );
+  // Footer: after المدونة list item (once) — only if footer link missing
+  if (!preg_match('#<li>\s*<a[^>]+href="[^"]*/ar/articles/?"[^>]*>\s*مقالات\s*</a>\s*</li>#u', $html)) {
+    $html = preg_replace(
+      '#(<li>\s*<a[^>]+href="[^"]*/ar/journal/?"[^>]*>المدونة</a>\s*</li>)#u',
+      '$1' . $footer_li,
+      $html,
+      1
+    );
+  }
   return $html;
 }
 

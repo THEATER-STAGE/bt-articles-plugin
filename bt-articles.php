@@ -231,7 +231,7 @@ function bt_art_import_batch() {
   update_option('bt_art_imported', [
     'count' => $n,
     'at' => current_time('mysql'),
-    'batch' => '2015-2016',
+    'batch' => '2015-2026',
   ], false);
   flush_rewrite_rules(false);
 
